@@ -38,6 +38,7 @@ public class InputUtil {
 		System.out.println("Enter last name of owner:");
 		String lastName = scanner.next();
 		System.out.println("Enter gender of owner:" + Arrays.asList(Gender.values()).toString());
+		//System.out.println("Enter gender of owner:" + Arrays.asList(Gender.values())); same meaning of both lines
 		String gender = scanner.next().toUpperCase();
 		System.out.println("Enter city of owner:");
 		String city = scanner.next();
