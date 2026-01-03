@@ -1,0 +1,62 @@
+
+package com.giriraj.repository.impl;
+
+import java.util.List;
+import java.util.Objects;
+
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+
+import com.giriraj.config.HibernateUtil;
+import com.giriraj.entity.Owner;
+import com.giriraj.entity.Pet;
+import com.giriraj.repository.OwnerRepository;
+
+
+public class OwnerRepositoryImpl implements OwnerRepository {
+	private SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+
+	@Override
+	public List<Owner> findSelectedOwnersWithoutHql(List<Integer> ownerIdList) {
+		try (Session session = sessionFactory.openSession()) {
+			return ownerIdList.stream().map(ownerId -> {
+				Owner owner = session.find(Owner.class, ownerId);
+				if (Objects.nonNull(owner)) {
+					Pet pet = Hibernate.unproxy(owner.getPet(), Pet.class);
+					owner.setPet(pet);
+				}
+				return owner;
+			}).toList();
+		}
+	}
+
+	@Override
+	public Owner findOwnerWithoutHql(Integer ownerId) {
+		try (Session session = sessionFactory.openSession()) {
+			Owner owner = session.find(Owner.class, ownerId);
+			if (Objects.nonNull(owner)) {
+				Pet pet = Hibernate.unproxy(owner.getPet(), Pet.class);
+				owner.setPet(pet);
+			}
+			return owner;
+		}
+	}
+
+	@Override
+	public List<Owner> findSelectedOwnersWithHql(List<Integer> ownerIdList) {
+		String sql = "SELECT o FROM Owner o JOIN FETCH o.pet WHERE o.id = :ownerId";
+		try (Session session = sessionFactory.openSession()) {
+			return ownerIdList.stream().map(ownerId -> session.createQuery(sql, Owner.class)
+					.setParameter("ownerId", ownerId).getSingleResultOrNull()).toList();
+		}
+	}
+
+	@Override
+	public Owner findOwnerWithHql(Integer ownerId) {
+		String sql = "SELECT o FROM Owner o JOIN FETCH o.pet WHERE o.id = :ownerId";
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery(sql, Owner.class).setParameter("ownerId", ownerId).getSingleResultOrNull();
+		}
+	}
+}
